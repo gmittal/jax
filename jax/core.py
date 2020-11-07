@@ -24,7 +24,7 @@ import threading
 import types
 from typing import (Any, Callable, ClassVar, Dict, Generator,
                     Iterator, List, NamedTuple, Optional, Sequence, Set, Tuple,
-                    Type, Union, cast)
+                    Type, Union, Hashable, cast)
 
 import numpy as np
 
@@ -647,6 +647,7 @@ class TraceStack:
 
 class Sublevel(int): pass
 AxisEnvFrame = namedtuple('AxisEnvFrame', ['name', 'size', 'main_trace'])
+AxisName = Hashable
 
 class TraceState:
   trace_stack: TraceStack
@@ -1254,16 +1255,11 @@ def axis_frame(axis_name):
   for frame in reversed(frames):
     if frame.name == axis_name:
       return frame
-
-  named_axis = [
-      frame.name
-      for frame in reversed(frames)
-      if not isinstance(frame.name, _TempAxisName)
-  ]
+  named_axes = [frame.name for frame in reversed(frames)
+                if not isinstance(frame.name, _TempAxisName)]
   raise NameError(
       f'unbound axis name: {axis_name}. The following axis names (e.g. defined '
-      'by pmap) are available to collective operations:'
-      f'{named_axis}')
+      f'by pmap) are available to collective operations: {named_axes}')
 
 
 # ------------------- Jaxpr checking -------------------
