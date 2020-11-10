@@ -619,6 +619,8 @@ def _all_to_all_batcher(vals_in, dims_in, *, axis_name, split_axis, concat_axis)
 
 def _all_to_all_batched_collective(frame, vals_in, dims_in,
                                    axis_name, split_axis, concat_axis):
+  if isinstance(axis_name, (list, tuple)) and len(axis_name) > 1:
+    raise NotImplementedError("update after #4835")  # TODO(mattjj,apaszke)
   x, = vals_in
   d, = dims_in
   split_axis_adj = split_axis + (1 if d <= split_axis else 0)
