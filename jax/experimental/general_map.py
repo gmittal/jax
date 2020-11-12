@@ -229,8 +229,7 @@ def vtile(f_flat, in_axes_flat, out_axes_flat, tile_size: Optional[int], axis_na
     batching.batch_fun(f_flat,
                        in_axes_flat,
                        out_axes_flat,
-                       axis_name=axis_name,
-                       axis_size=tile_size))
+                       axis_name=axis_name))
 
 # Single-dimensional generalized map
 
