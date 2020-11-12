@@ -767,7 +767,7 @@ def find_top_trace(xs) -> Trace:
                  default=None, key=attrgetter('level'))
   dynamic = thread_local_state.trace_state.trace_stack.dynamic
   top_main = (dynamic if top_main is None or dynamic.level > top_main.level
-                else top_main)
+              else top_main)
   return top_main and top_main.with_cur_sublevel()  # type: ignore
 
 

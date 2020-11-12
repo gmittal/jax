@@ -15,7 +15,7 @@
 import enum
 import threading
 import contextlib
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from typing import Callable, Iterable, List, Tuple, Optional, Dict, Any
 from warnings import warn
 from functools import wraps, partial
@@ -87,10 +87,8 @@ def xmap(fun: Callable,
     # TODO: Verify that out_axes are equal, or better expand their prefix
     # assert out_axes_tree == in_tree
 
-    resource_to_axis: Dict[ResourceAxisName, List[AxisName]] = dict()
+    resource_to_axis: Dict[ResourceAxisName, List[AxisName]] = defaultdict(list)
     for (axis, resource) in schedule:
-      if resource not in resource_to_axis:
-        resource_to_axis[resource] = []
       resource_to_axis[resource].append(axis)
 
     # TODO: The order of maps should be derived from the schedule, not from the
@@ -221,22 +219,18 @@ def untile_axis(out, axis: Optional[int]):
 def vtile(f_flat, in_axes_flat, out_axes_flat, tile_size: Optional[int], axis_name):
   @lu.transformation
   def _map_to_tile(*args_flat):
-    real_tile_size = tile_size
-    for arg, in_axis in zip(args_flat, in_axes_flat):
-      if real_tile_size is not None:
-        break
-      if in_axis is None:
-        continue
-      real_tile_size = arg.shape[in_axis]
-    assert real_tile_size is not None, "No mapped arguments?"
-    outputs_flat = yield map(tile_axis(tile_size=real_tile_size), args_flat, in_axes_flat), {}
+    sizes = (x.shape[i] for x, i in zip(args_flat, in_axes_flat) if i is not None)
+    tile_size_ = tile_size or next(sizes, None)
+    assert tile_size_ is not None, "No mapped arguments?"
+    outputs_flat = yield map(tile_axis(tile_size=tile_size_), args_flat, in_axes_flat), {}
     yield map(untile_axis, outputs_flat, out_axes_flat)
 
   return _map_to_tile(
     batching.batch_fun(f_flat,
                        in_axes_flat,
                        out_axes_flat,
-                       axis_name=axis_name))
+                       axis_name=axis_name,
+                       axis_size=tile_size))
 
 # Single-dimensional generalized map
 

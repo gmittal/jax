@@ -59,9 +59,9 @@ def _batch_fun(axis_name, sum_match, in_dims, out_dims_thunk, out_dim_dests,
   in_dims = [
     canonicalize_axis(dim, np.ndim(val)) if isinstance(dim, int) else dim
     for val, dim in zip(in_vals, in_dims)]
-  size, = {x.shape[d] for x, d in zip(in_vals, in_dims) if d is not not_mapped}
+  axis_size, = {x.shape[d] for x, d in zip(in_vals, in_dims) if d is not not_mapped}
   with core.new_main(BatchTrace, axis_name=axis_name) as main:
-    with core.extend_axis_env(axis_name, size, main):
+    with core.extend_axis_env(axis_name, axis_size, main):
       out_vals = yield (main, in_dims,) + in_vals, params
     del main
   out_dim_dests = out_dim_dests() if callable(out_dim_dests) else out_dim_dests
@@ -70,7 +70,8 @@ def _batch_fun(axis_name, sum_match, in_dims, out_dims_thunk, out_dim_dests,
     if od is not None and not isinstance(od_dest, int) and not sum_match:
       msg = f"vmap has mapped output but out_axes is {od_dest}"
       raise ValueError(msg)
-  out_vals = map(partial(matchaxis, size, sum_match=sum_match), out_dims, out_dim_dests, out_vals)
+  out_vals = map(partial(matchaxis, axis_size, sum_match=sum_match),
+                 out_dims, out_dim_dests, out_vals)
   yield out_vals
 
 def batch_fun2(fun : lu.WrappedFun, in_dims):

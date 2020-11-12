@@ -254,7 +254,7 @@ def pswapaxes(x, axis_name, axis):
   """
   return all_to_all(x, axis_name, axis, axis)
 
-def all_to_all(x, axis_name: core.AxisName, split_axis: int, concat_axis: int):
+def all_to_all(x, axis_name, split_axis: int, concat_axis: int):
   """Materialize the mapped axis and map a different axis.
 
   If ``x`` is a pytree then the result is equivalent to mapping this function to
