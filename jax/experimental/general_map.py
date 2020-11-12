@@ -381,6 +381,4 @@ def subst_eqn_axis_names(eqn, axis_subst: Dict[AxisName, Tuple[AxisName]]):
   if not isinstance(axis_names, (tuple, list)):
     axis_names = (axis_names,)
   new_axis_names = sum((axis_subst.get(name, (name,)) for name in axis_names), ())
-  if len(new_axis_names) == 1:
-    new_axis_names = new_axis_names[0]  # type: ignore
   return eqn._replace(params=dict(eqn.params, axis_name=new_axis_names))
