@@ -158,10 +158,10 @@ def _trace_mapped_jaxpr(fun,
                         in_tree):
   fun_flat, out_tree = flatten_fun(lu.wrap_init(fun), in_tree)
   avals_flat = [core.raise_to_shaped(core.get_aval(arg)) for arg in args_flat]
-  mapped_pvals = [pe.PartialVal.unknown(_delete_aval_axes(aval, in_axes))
+  mapped_avals = [_delete_aval_axes(aval, in_axes)
                   for aval, in_axes in zip(avals_flat, in_axes_flat)]
-  jaxpr, _, consts = _with_axes(axis_sizes.items(),
-                                lambda: pe.trace_to_jaxpr(fun_flat, mapped_pvals))
+  jaxpr, _, consts = _with_axes(
+      axis_sizes.items(), lambda: pe.trace_to_jaxpr_dynamic(fun_flat, mapped_avals))
   return core.ClosedJaxpr(jaxpr, consts), out_tree()
 
 def _get_axis_sizes(args_flat: Iterable[Any], in_axes_flat: Iterable[AxisNamePos]):
